@@ -1,6 +1,7 @@
 const express = require('express');
 const reload = require('reload');
 const upload = require('./uploadConfig');
+const { hash } = require('bcrypt');
 const User = require('./models/user.model');
 
 const parser = require('body-parser').urlencoded({ extended: false });
@@ -24,6 +25,21 @@ app.get('/dangnhap', (req, res) => {
 
 app.post('/dangky', (req, res) => {
     upload.single('avatar')(req, res, err => {
+        const { name, email, password, phone } = req.body;
+        const avatar = req.file ? req.file.filename : 'default.png';
+        hash(password, 8)
+        .then(encryted => {
+            const user = new User({
+                name,
+                email,
+                password: encryted,
+                phone,
+                avatar
+            });
+            return user.save();
+        })
+        .then(() => res.send('Dang ky thanh cong'))
+        .catch(() => res.send('Dang ky that bai'));
     });
 });
 
