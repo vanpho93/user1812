@@ -18,11 +18,18 @@ class Child extends Person {
         const message = p1.age > p2.age ? `${p1.name} is bigger than ${p2.name}` : `${p2.name} bigger than ${p1.name}`
         console.log(message);
     }
+
+    sayHello() {
+        super.sayHello();
+        console.log(`Xin chao, toi la ${this.name}`);
+    }
 }
 
 const teo = new Child('Teo Nguyen', 10);
 const ti = new Child('Ti Nguyen', 12);
 Child.compare(teo, ti);
+
+teo.sayHello();
 // teo.getAgeOfPerson();
 // console.log(teo);
 // teo.sayHello();
