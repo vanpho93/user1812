@@ -1,6 +1,7 @@
 const express = require('express');
 const reload = require('reload');
 const upload = require('./uploadConfig');
+const User = require('./models/user.model');
 
 const parser = require('body-parser').urlencoded({ extended: false });
 
