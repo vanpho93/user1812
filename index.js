@@ -27,34 +27,17 @@ app.post('/dangky', (req, res) => {
     upload.single('avatar')(req, res, err => {
         const { name, email, password, phone } = req.body;
         const avatar = req.file ? req.file.filename : 'default.png';
-        hash(password, 8)
-        .then(encryted => {
-            const user = new User({
-                name,
-                email,
-                password: encryted,
-                phone,
-                avatar
-            });
-            return user.save();
-        })
-        .then(() => res.send('Dang ky thanh cong'))
-        .catch(() => res.send('Dang ky that bai'));
+        User.signUp(email, password, name, phone, avatar)
+        .then(user => res.send('Dang ky thanh cong'))
+        .catch(err => res.send('Dang ky that bai'));
     });
 });
 
 app.post('/dangnhap', parser, (req, res) => {
     const { email, password } = req.body;
-    User.findOne({ email })
-    .then(user => {
-        if (!user) throw new Error('Cannot find user.');
-        return compare(password, user.password);
-    })
-    .then(same => {
-        if (!same) throw new Error('Invalid password.');
-        res.send('Dang nhap thanh cong.');
-    })
-    .catch(err => res.send('Dang nhap that bai.'))
+    User.signIn(email, password)
+    .then(() => res.send('Dang nhap thanh cong.'))
+    .catch(err => res.send('Dang nhap that bai.'));
 });
 
 app.listen(3000, () => console.log('Server started!'));
