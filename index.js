@@ -1,7 +1,7 @@
 const express = require('express');
 const reload = require('reload');
 const upload = require('./uploadConfig');
-const { hash } = require('bcrypt');
+const { hash, compare } = require('bcrypt');
 const User = require('./models/user.model');
 
 const parser = require('body-parser').urlencoded({ extended: false });
@@ -44,6 +44,17 @@ app.post('/dangky', (req, res) => {
 });
 
 app.post('/dangnhap', parser, (req, res) => {
+    const { email, password } = req.body;
+    User.findOne({ email })
+    .then(user => {
+        if (!user) throw new Error('Cannot find user.');
+        return compare(password, user.password);
+    })
+    .then(same => {
+        if (!same) throw new Error('Invalid password.');
+        res.send('Dang nhap thanh cong.');
+    })
+    .catch(err => res.send('Dang nhap that bai.'))
 });
 
 app.listen(3000, () => console.log('Server started!'));
