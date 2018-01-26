@@ -8,7 +8,7 @@ function sign(obj) {
             if (err) return reject(err);
             resolve(token);
         });
-    })
+    });
 }
 
 function verify(token) {
@@ -21,3 +21,5 @@ function verify(token) {
         });
     })
 }
+
+module.exports = { sign, verify };

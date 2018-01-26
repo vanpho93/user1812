@@ -1,24 +1,23 @@
 const express = require('express');
-const session = require('express-session');
-const app = express();
+const cookieParser = require('cookie-parser');
+const { sign, verify } = require('./jwt');
 
-app.use(session({
-    secret: 'af4y3q94sn232f',
-    resave: false,
-    saveUninitialized: true,
-    cookie: { maxAge: 1000000 },
-    rolling: true
-}));
+const app = express();
+app.use(cookieParser());
 
 app.get('/xemphim', (req, res) => {
-    // console.log(req.session.daMuaVe);
-    if (req.session.daMuaVe) return res.send('Moi xem phim.');
-    res.send('Ban phai mua ve');
+    const { token } = req.cookies;
+    if (!token) return res.send('Ban phai mua ve.');
+    verify(token)
+    .then(() => res.send('Moi xem phim.'))
+    .catch(() => res.send('Ban phai mua ve.'));
 });
 
 app.get('/muave', (req, res) => {
-    req.session.daMuaVe = true;
-    res.cookie('DA_MUA_VE', true).send('Ban da mua ve.');
+    sign({ daMuaVe: true })
+    .then(token => {
+        res.cookie('token', token).send('Ban da mua ve.');
+    });
 });
 
 app.listen(3000, () => console.log('Server started!'));
