@@ -1,7 +1,9 @@
 const express = require('express');
 const reload = require('reload');
-const session = require('express-session');
 const upload = require('./uploadConfig');
+const cookieParser = require('cookie-parser');
+
+const { sign, verify } = require('./jwt');
 const { hash, compare } = require('bcrypt');
 const User = require('./models/user.model');
 
@@ -11,33 +13,26 @@ const app = express();
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
-
-app.use(session({
-    secret: 'af4y3q94sn232f',
-    resave: false,
-    saveUninitialized: true,
-    cookie: { maxAge: 1000000 },
-    rolling: true
-}));
+app.use(cookieParser());
 
 reload(app);
 
 app.get('/', (req, res) => {
-    const { _id } = req.session;
-    if (!_id) return res.redirect('/dangnhap');
-    User.findById(_id)
-    .then(user => res.render('home', { user }))
-    .catch(err => res.send(err));
+    if (!req.cookies.token) return res.redirect('/dangnhap');
+    verify(req.cookies.token)
+    .then(obj => User.findById(obj._id))
+    .then(user => {
+        if (!user) throw new Error('Cannot find user.');
+        res.render('home', { user });
+    })
+    .catch(err => res.redirect('/dangnhap'));
 });
 
 app.post('/dangnhap', parser, (req, res) => {
     const { email, password } = req.body;
     User.signIn(email, password)
-    .then(user => {
-        // req.session.daDangNhap = true;
-        req.session._id = user._id;
-        res.redirect('/');
-    })
+    .then(user => sign({ _id: user._id }))
+    .then(token => res.cookie('token', token).redirect('/'))
     .catch(err => res.send('Dang nhap that bai.'));
 });
 
@@ -54,8 +49,8 @@ app.post('/dangky', (req, res) => {
         const { name, email, password, phone } = req.body;
         const avatar = req.file ? req.file.filename : 'default.png';
         User.signUp(email, password, name, phone, avatar)
-        .then(user => res.send('Dang ky thanh cong'))
-        .catch(err => res.send('Dang ky that bai'));
+            .then(user => res.send('Dang ky thanh cong'))
+            .catch(err => res.send('Dang ky that bai'));
     });
 });
 
