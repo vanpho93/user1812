@@ -23,8 +23,22 @@ app.use(session({
 reload(app);
 
 app.get('/', (req, res) => {
-    if (!req.session.daDangNhap) return res.redirect('/dangnhap');
-    res.render('home');
+    const { _id } = req.session;
+    if (!_id) return res.redirect('/dangnhap');
+    User.findById(_id)
+    .then(user => res.render('home', { user }))
+    .catch(err => res.send(err));
+});
+
+app.post('/dangnhap', parser, (req, res) => {
+    const { email, password } = req.body;
+    User.signIn(email, password)
+    .then(user => {
+        // req.session.daDangNhap = true;
+        req.session._id = user._id;
+        res.redirect('/');
+    })
+    .catch(err => res.send('Dang nhap that bai.'));
 });
 
 app.get('/dangky', (req, res) => {
@@ -43,16 +57,6 @@ app.post('/dangky', (req, res) => {
         .then(user => res.send('Dang ky thanh cong'))
         .catch(err => res.send('Dang ky that bai'));
     });
-});
-
-app.post('/dangnhap', parser, (req, res) => {
-    const { email, password } = req.body;
-    User.signIn(email, password)
-    .then(() => {
-        req.session.daDangNhap = true;
-        res.redirect('/');
-    })
-    .catch(err => res.send('Dang nhap that bai.'));
 });
 
 app.listen(3000, () => console.log('Server started!'));

@@ -27,6 +27,7 @@ class User extends UserModel {
         if (!user) throw new Error('Cannot find user.');
         const same = await compare(password, user.password);
         if (!same) throw new Error('Invalid password.');
+        return user;
     }
 }
 
