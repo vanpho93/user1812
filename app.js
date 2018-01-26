@@ -11,8 +11,8 @@ app.use(session({
 }));
 
 app.get('/xemphim', (req, res) => {
-    console.log(req.session.daMuaVe);
-    // if (req.cookies.DA_MUA_VE) return res.send('Moi xem phim.');
+    // console.log(req.session.daMuaVe);
+    if (req.session.daMuaVe) return res.send('Moi xem phim.');
     res.send('Ban phai mua ve');
 });
 

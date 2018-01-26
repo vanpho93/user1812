@@ -1,5 +1,6 @@
 const express = require('express');
 const reload = require('reload');
+const session = require('express-session');
 const upload = require('./uploadConfig');
 const { hash, compare } = require('bcrypt');
 const User = require('./models/user.model');
@@ -7,11 +8,22 @@ const User = require('./models/user.model');
 const parser = require('body-parser').urlencoded({ extended: false });
 
 const app = express();
+
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
+
+app.use(session({
+    secret: 'af4y3q94sn232f',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 1000000 },
+    rolling: true
+}));
+
 reload(app);
 
 app.get('/', (req, res) => {
+    if (!req.session.daDangNhap) return res.redirect('/dangnhap');
     res.render('home');
 });
 
@@ -36,7 +48,10 @@ app.post('/dangky', (req, res) => {
 app.post('/dangnhap', parser, (req, res) => {
     const { email, password } = req.body;
     User.signIn(email, password)
-    .then(() => res.send('Dang nhap thanh cong.'))
+    .then(() => {
+        req.session.daDangNhap = true;
+        res.redirect('/');
+    })
     .catch(err => res.send('Dang nhap that bai.'));
 });
 
