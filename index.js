@@ -17,6 +17,16 @@ app.use(cookieParser());
 
 reload(app);
 
+const redirectIfLoggedIn = (req, res, next) => {
+    if (!req.cookies.token) return next();
+    verify(req.cookies.token)
+    .then(() => res.redirect('/'))
+    .catch(() => {
+        res.clearCookie('token');
+        next();
+    })
+}
+
 app.get('/', (req, res) => {
     if (!req.cookies.token) return res.redirect('/dangnhap');
     verify(req.cookies.token)
@@ -25,7 +35,7 @@ app.get('/', (req, res) => {
         if (!user) throw new Error('Cannot find user.');
         res.render('home', { user });
     })
-    .catch(err => res.redirect('/dangnhap'));
+    .catch(err => res.clearCookie('token').redirect('/dangnhap'));
 });
 
 app.post('/dangnhap', parser, (req, res) => {
@@ -36,12 +46,12 @@ app.post('/dangnhap', parser, (req, res) => {
     .catch(err => res.send('Dang nhap that bai.'));
 });
 
-app.get('/dangky', (req, res) => {
+app.get('/dangky', redirectIfLoggedIn, (req, res) => {
     res.render('dangky');
 });
 
-app.get('/dangnhap', (req, res) => {
-    res.render('dangnhap');
+app.get('/dangnhap', redirectIfLoggedIn, (req, res) => {
+   render('dangnhap');
 });
 
 app.post('/dangky', (req, res) => {
